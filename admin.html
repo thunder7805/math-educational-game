@@ -1,0 +1,2055 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MathGame Admin Dashboard</title>
+    
+    <!-- React 18 CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel Standalone for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --secondary: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg-light: #f8fafc;
+            --bg-white: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --radius: 8px;
+            --radius-lg: 12px;
+            --transition: all 0.2s ease;
+        }
+
+        [data-theme="dark"] {
+            --bg-light: #0f172a;
+            --bg-white: #1e293b;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border-color: #334155;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-primary);
+            line-height: 1.6;
+            transition: var(--transition);
+        }
+
+        /* Layout */
+        .app-container {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            min-height: 100vh;
+        }
+
+        @media (max-width: 1024px) {
+            .app-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--bg-white);
+            border-right: 1px solid var(--border-color);
+            padding: 1.5rem;
+            position: fixed;
+            height: 100vh;
+            width: 260px;
+            overflow-y: auto;
+            transition: var(--transition);
+            z-index: 100;
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 280px;
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .brand-icon {
+            font-size: 2rem;
+        }
+
+        .brand-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius);
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .nav-link:hover {
+            background: var(--bg-light);
+            color: var(--primary);
+        }
+
+        .nav-link.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        .nav-icon {
+            font-size: 1.25rem;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            padding: 2rem;
+            transition: var(--transition);
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .hamburger {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-primary);
+        }
+
+        @media (max-width: 1024px) {
+            .hamburger {
+                display: block;
+            }
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            background: var(--bg-white);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-size: 1.25rem;
+            transition: var(--transition);
+        }
+
+        .theme-toggle:hover {
+            background: var(--bg-light);
+        }
+
+        /* Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-white);
+            padding: 1.5rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .stat-icon.primary { background: rgba(59, 130, 246, 0.1); }
+        .stat-icon.success { background: rgba(16, 185, 129, 0.1); }
+        .stat-icon.warning { background: rgba(245, 158, 11, 0.1); }
+        .stat-icon.secondary { background: rgba(139, 92, 246, 0.1); }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .stat-trend {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+
+        .stat-trend.up { color: var(--success); }
+        .stat-trend.down { color: var(--danger); }
+
+        /* Charts */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 600px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chart-card {
+            background: var(--bg-white);
+            padding: 1.5rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+        }
+
+        .chart-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .chart-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        /* Tables */
+        .table-container {
+            background: var(--bg-white);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+        }
+
+        .table-filters {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 0.625rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            background: var(--bg-light);
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            transition: var(--transition);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .filter-select {
+            padding: 0.625rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            background: var(--bg-light);
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 1rem 1.5rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--bg-light);
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            cursor: pointer;
+            user-select: none;
+            transition: var(--transition);
+        }
+
+        th:hover {
+            color: var(--primary);
+        }
+
+        tr:hover {
+            background: var(--bg-light);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        td {
+            font-size: 0.875rem;
+            color: var(--text-primary);
+        }
+
+        .sortable {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .sort-icon {
+            font-size: 0.75rem;
+            opacity: 0.5;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.625rem 1.25rem;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: var(--bg-light);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-sm {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.75rem;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal {
+            background: var(--bg-white);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: var(--transition);
+        }
+
+        .modal-close:hover {
+            color: var(--text-primary);
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            background: var(--bg-light);
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            transition: var(--transition);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        /* Slider */
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .slider {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--border-color);
+            outline: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .slider::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+
+        .slider-value {
+            min-width: 50px;
+            text-align: center;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        /* Toggle */
+        .toggle {
+            position: relative;
+            width: 50px;
+            height: 26px;
+            appearance: none;
+            background: var(--border-color);
+            border-radius: 13px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .toggle:checked {
+            background: var(--primary);
+        }
+
+        .toggle::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+
+        .toggle:checked::after {
+            left: 27px;
+        }
+
+        .toggle-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .toggle-label {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 2000;
+        }
+
+        .toast {
+            background: var(--bg-white);
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+            animation: slideInRight 0.3s ease;
+            border-left: 4px solid var(--success);
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Activity Feed */
+        .activity-feed {
+            background: var(--bg-white);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .activity-info {
+            flex: 1;
+        }
+
+        .activity-name {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .activity-action {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .activity-time {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        /* Badge */
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-easy { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+        .badge-medium { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+        .badge-hard { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+        .badge-kids { background: rgba(59, 130, 246, 0.1); color: var(--primary); }
+        .badge-teens { background: rgba(139, 92, 246, 0.1); color: var(--secondary); }
+
+        /* Progress Bar */
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-fill.success { background: var(--success); }
+        .progress-fill.warning { background: var(--warning); }
+        .progress-fill.danger { background: var(--danger); }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Section */
+        .section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        /* Weak Areas */
+        .weak-areas {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .weak-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--bg-light);
+            border-radius: var(--radius);
+        }
+
+        .weak-rank {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--danger);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.875rem;
+        }
+
+        .weak-info {
+            flex: 1;
+        }
+
+        .weak-question {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .weak-stats {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        /* Responsive Table */
+        @media (max-width: 768px) {
+            .table-container {
+                overflow-x: auto;
+            }
+            
+            table {
+                min-width: 800px;
+            }
+        }
+
+        /* Settings Grid */
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .settings-card {
+            background: var(--bg-white);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+        }
+
+        .settings-card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useContext, createContext, useMemo } = React;
+
+        // ==================== MOCK DATA ====================
+        const mockStudents = [
+            { id: 1, name: "Emma Johnson", age: 7, mode: "Kids", totalQuestions: 245, accuracy: 87, lastActive: "2024-01-15", topics: { addition: 92, subtraction: 85, multiplication: 78, division: 72, algebra: 0, geometry: 88 } },
+            { id: 2, name: "Liam Smith", age: 12, mode: "Teens", totalQuestions: 512, accuracy: 92, lastActive: "2024-01-15", topics: { addition: 98, subtraction: 95, multiplication: 94, division: 91, algebra: 88, geometry: 90 } },
+            { id: 3, name: "Olivia Williams", age: 9, mode: "Kids", totalQuestions: 328, accuracy: 79, lastActive: "2024-01-14", topics: { addition: 85, subtraction: 80, multiplication: 72, division: 68, algebra: 0, geometry: 75 } },
+            { id: 4, name: "Noah Brown", age: 15, mode: "Teens", totalQuestions: 687, accuracy: 95, lastActive: "2024-01-15", topics: { addition: 99, subtraction: 98, multiplication: 96, division: 94, algebra: 92, geometry: 95 } },
+            { id: 5, name: "Ava Davis", age: 6, mode: "Kids", totalQuestions: 156, accuracy: 82, lastActive: "2024-01-13", topics: { addition: 88, subtraction: 78, multiplication: 0, division: 0, algebra: 0, geometry: 80 } },
+            { id: 6, name: "Ethan Miller", age: 14, mode: "Teens", totalQuestions: 445, accuracy: 88, lastActive: "2024-01-15", topics: { addition: 94, subtraction: 90, multiplication: 88, division: 85, algebra: 82, geometry: 87 } },
+            { id: 7, name: "Sophia Wilson", age: 8, mode: "Kids", totalQuestions: 289, accuracy: 91, lastActive: "2024-01-14", topics: { addition: 95, subtraction: 90, multiplication: 85, division: 82, algebra: 0, geometry: 92 } },
+            { id: 8, name: "Mason Moore", age: 16, mode: "Teens", totalQuestions: 723, accuracy: 89, lastActive: "2024-01-12", topics: { addition: 96, subtraction: 93, multiplication: 90, division: 87, algebra: 85, geometry: 88 } },
+            { id: 9, name: "Isabella Taylor", age: 10, mode: "Kids", totalQuestions: 378, accuracy: 84, lastActive: "2024-01-15", topics: { addition: 90, subtraction: 85, multiplication: 80, division: 75, algebra: 0, geometry: 82 } },
+            { id: 10, name: "James Anderson", age: 17, mode: "Teens", totalQuestions: 892, accuracy: 93, lastActive: "2024-01-15", topics: { addition: 98, subtraction: 96, multiplication: 94, division: 92, algebra: 90, geometry: 93 } },
+            { id: 11, name: "Mia Thomas", age: 5, mode: "Kids", totalQuestions: 98, accuracy: 76, lastActive: "2024-01-14", topics: { addition: 82, subtraction: 70, multiplication: 0, division: 0, algebra: 0, geometry: 75 } },
+            { id: 12, name: "Benjamin Jackson", age: 13, mode: "Teens", totalQuestions: 534, accuracy: 90, lastActive: "2024-01-13", topics: { addition: 95, subtraction: 92, multiplication: 90, division: 88, algebra: 85, geometry: 89 } }
+        ];
+
+        const mockQuestions = [
+            { id: 1, text: "What is 5 + 3?", answer: "8", options: ["7", "8", "9", "10"], difficulty: "Easy", ageGroup: "5-9" },
+            { id: 2, text: "What is 12 - 7?", answer: "5", options: ["4", "5", "6", "7"], difficulty: "Easy", ageGroup: "5-9" },
+            { id: 3, text: "What is 6 × 4?", answer: "24", options: ["20", "22", "24", "28"], difficulty: "Medium", ageGroup: "5-9" },
+            { id: 4, text: "What is 36 ÷ 6?", answer: "6", options: ["5", "6", "7", "8"], difficulty: "Medium", ageGroup: "5-9" },
+            { id: 5, text: "What is 15 + 27?", answer: "42", options: ["40", "41", "42", "43"], difficulty: "Medium", ageGroup: "10-14" },
+            { id: 6, text: "What is 100 - 47?", answer: "53", options: ["52", "53", "54", "55"], difficulty: "Medium", ageGroup: "10-14" },
+            { id: 7, text: "What is 12 × 12?", answer: "144", options: ["140", "142", "144", "148"], difficulty: "Hard", ageGroup: "10-14" },
+            { id: 8, text: "What is 144 ÷ 12?", answer: "12", options: ["10", "11", "12", "13"], difficulty: "Hard", ageGroup: "10-14" },
+            { id: 9, text: "Solve for x: 2x + 5 = 15", answer: "5", options: ["4", "5", "6", "7"], difficulty: "Hard", ageGroup: "15-18" },
+            { id: 10, text: "What is the area of a rectangle with length 8 and width 5?", answer: "40", options: ["35", "40", "45", "50"], difficulty: "Medium", ageGroup: "10-14" },
+            { id: 11, text: "What is 7 × 8?", answer: "56", options: ["54", "56", "58", "60"], difficulty: "Medium", ageGroup: "5-9" },
+            { id: 12, text: "What is 81 ÷ 9?", answer: "9", options: ["8", "9", "10", "11"], difficulty: "Easy", ageGroup: "5-9" },
+            { id: 13, text: "Solve for x: 3x - 7 = 14", answer: "7", options: ["6", "7", "8", "9"], difficulty: "Hard", ageGroup: "15-18" },
+            { id: 14, text: "What is the perimeter of a square with side 6?", answer: "24", options: ["20", "22", "24", "26"], difficulty: "Medium", ageGroup: "10-14" },
+            { id: 15, text: "What is 17 + 28?", answer: "45", options: ["43", "44", "45", "46"], difficulty: "Easy", ageGroup: "5-9" },
+            { id: 16, text: "What is 50 - 23?", answer: "27", options: ["25", "26", "27", "28"], difficulty: "Easy", ageGroup: "5-9" }
+        ];
+
+        const weeklyActivityData = [
+            { day: "Mon", value: 145 },
+            { day: "Tue", value: 178 },
+            { day: "Wed", value: 162 },
+            { day: "Thu", value: 195 },
+            { day: "Fri", value: 210 },
+            { day: "Sat", value: 185 },
+            { day: "Sun", value: 156 }
+        ];
+
+        const ageGroupPerformance = [
+            { group: "5-9", score: 82 },
+            { group: "10-14", score: 88 },
+            { group: "15-18", score: 91 }
+        ];
+
+        const topicAccuracy = [
+            { topic: "Addition", accuracy: 92 },
+            { topic: "Subtraction", accuracy: 88 },
+            { topic: "Multiplication", accuracy: 85 },
+            { topic: "Division", accuracy: 82 },
+            { topic: "Algebra", accuracy: 78 },
+            { topic: "Geometry", accuracy: 86 }
+        ];
+
+        const weakQuestions = [
+            { id: 9, text: "Solve for x: 2x + 5 = 15", wrongAttempts: 45 },
+            { id: 13, text: "Solve for x: 3x - 7 = 14", wrongAttempts: 38 },
+            { id: 7, text: "What is 12 × 12?", wrongAttempts: 32 }
+        ];
+
+        // ==================== CONTEXT ====================
+        const ThemeContext = createContext();
+
+        const ThemeProvider = ({ children }) => {
+            const [theme, setTheme] = useState('light');
+
+            useEffect(() => {
+                document.documentElement.setAttribute('data-theme', theme);
+            }, [theme]);
+
+            const toggleTheme = () => {
+                setTheme(prev => prev === 'light' ? 'dark' : 'light');
+            };
+
+            return (
+                <ThemeContext.Provider value={{ theme, toggleTheme }}>
+                    {children}
+                </ThemeContext.Provider>
+            );
+        };
+
+        // ==================== COMPONENTS ====================
+
+        // Sidebar Component
+        const Sidebar = ({ currentPage, setCurrentPage, isOpen, setIsOpen }) => {
+            const menuItems = [
+                { id: 'dashboard', label: 'Dashboard', icon: '📊' },
+                { id: 'students', label: 'Students', icon: '👥' },
+                { id: 'analytics', label: 'Analytics', icon: '📈' },
+                { id: 'questions', label: 'Questions', icon: '❓' },
+                { id: 'settings', label: 'Settings', icon: '⚙️' }
+            ];
+
+            return (
+                <>
+                    {/* Mobile Overlay */}
+                    {isOpen && (
+                        <div 
+                            style={{
+                                position: 'fixed',
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                background: 'rgba(0,0,0,0.5)',
+                                zIndex: 99,
+                                backdropFilter: 'blur(2px)'
+                            }}
+                            onClick={() => setIsOpen(false)}
+                        />
+                    )}
+                    
+                    <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
+                        <div className="brand">
+                            <span className="brand-icon">🧮</span>
+                            <span className="brand-name">MathGame Admin</span>
+                        </div>
+                        
+                        <ul className="nav-menu">
+                            {menuItems.map(item => (
+                                <li key={item.id} className="nav-item">
+                                    <a 
+                                        className={`nav-link ${currentPage === item.id ? 'active' : ''}`}
+                                        onClick={() => {
+                                            setCurrentPage(item.id);
+                                            setIsOpen(false);
+                                        }}
+                                    >
+                                        <span className="nav-icon">{item.icon}</span>
+                                        <span>{item.label}</span>
+                                    </a>
+                                </li>
+                            ))}
+                        </ul>
+                    </aside>
+                </>
+            );
+        };
+
+        // Line Chart Component (SVG)
+        const LineChart = ({ data, width = 400, height = 200 }) => {
+            const maxValue = Math.max(...data.map(d => d.value));
+            const padding = 40;
+            const chartWidth = width - padding * 2;
+            const chartHeight = height - padding * 2;
+            
+            const points = data.map((d, i) => {
+                const x = padding + (i / (data.length - 1)) * chartWidth;
+                const y = height - padding - (d.value / maxValue) * chartHeight;
+                return `${x},${y}`;
+            }).join(' ');
+
+            const areaPoints = `${padding},${height - padding} ${points} ${width - padding},${height - padding}`;
+
+            return (
+                <svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`}>
+                    {/* Grid lines */}
+                    {[0, 0.25, 0.5, 0.75, 1].map(ratio => (
+                        <line
+                            key={ratio}
+                            x1={padding}
+                            y1={height - padding - ratio * chartHeight}
+                            x2={width - padding}
+                            y2={height - padding - ratio * chartHeight}
+                            stroke="var(--border-color)"
+                            strokeWidth="1"
+                        />
+                    ))}
+                    
+                    {/* Area fill */}
+                    <polygon
+                        points={areaPoints}
+                        fill="url(#gradient)"
+                        opacity="0.3"
+                    />
+                    
+                    {/* Line */}
+                    <polyline
+                        points={points}
+                        fill="none"
+                        stroke="var(--primary)"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                    />
+                    
+                    {/* Data points */}
+                    {data.map((d, i) => {
+                        const x = padding + (i / (data.length - 1)) * chartWidth;
+                        const y = height - padding - (d.value / maxValue) * chartHeight;
+                        return (
+                            <g key={i}>
+                                <circle
+                                    cx={x}
+                                    cy={y}
+                                    r="5"
+                                    fill="var(--bg-white)"
+                                    stroke="var(--primary)"
+                                    strokeWidth="2"
+                                />
+                                <text
+                                    x={x}
+                                    y={height - padding + 20}
+                                    textAnchor="middle"
+                                    fill="var(--text-secondary)"
+                                    fontSize="12"
+                                >
+                                    {d.day}
+                                </text>
+                            </g>
+                        );
+                    })}
+                    
+                    <defs>
+                        <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stopColor="var(--primary)" />
+                            <stop offset="100%" stopColor="var(--primary)" stopOpacity="0" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+            );
+        };
+
+        // Bar Chart Component (SVG)
+        const BarChart = ({ data, width = 400, height = 200, horizontal = false }) => {
+            const maxValue = Math.max(...data.map(d => d.score || d.accuracy));
+            const padding = 60;
+            const barHeight = 30;
+            const barGap = 15;
+            
+            if (horizontal) {
+                const chartHeight = data.length * (barHeight + barGap);
+                
+                return (
+                    <svg width="100%" height={chartHeight + padding} viewBox={`0 0 ${width} ${chartHeight + padding}`}>
+                        {data.map((d, i) => {
+                            const barWidth = (d.accuracy / 100) * (width - padding * 2);
+                            const y = padding + i * (barHeight + barGap);
+                            
+                            return (
+                                <g key={i}>
+                                    <text
+                                        x={10}
+                                        y={y + barHeight / 2 + 4}
+                                        fill="var(--text-primary)"
+                                        fontSize="12"
+                                        fontWeight="500"
+                                    >
+                                        {d.topic}
+                                    </text>
+                                    <rect
+                                        x={padding}
+                                        y={y}
+                                        width={barWidth}
+                                        height={barHeight}
+                                        rx="4"
+                                        fill="var(--primary)"
+                                        opacity="0.8"
+                                    />
+                                    <text
+                                        x={padding + barWidth + 8}
+                                        y={y + barHeight / 2 + 4}
+                                        fill="var(--text-primary)"
+                                        fontSize="12"
+                                        fontWeight="600"
+                                    >
+                                        {d.accuracy}%
+                                    </text>
+                                </g>
+                            );
+                        })}
+                    </svg>
+                );
+            }
+
+            const chartWidth = width - padding * 2;
+            const barWidth = chartWidth / data.length - 20;
+            const chartHeight = height - padding * 2;
+
+            return (
+                <svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`}>
+                    {/* Grid lines */}
+                    {[0, 0.25, 0.5, 0.75, 1].map(ratio => (
+                        <line
+                            key={ratio}
+                            x1={padding}
+                            y1={height - padding - ratio * chartHeight}
+                            x2={width - padding}
+                            y2={height - padding - ratio * chartHeight}
+                            stroke="var(--border-color)"
+                            strokeWidth="1"
+                        />
+                    ))}
+                    
+                    {data.map((d, i) => {
+                        const x = padding + i * (barWidth + 20) + 10;
+                        const barHeightVal = (d.score / maxValue) * chartHeight;
+                        const y = height - padding - barHeightVal;
+                        
+                        return (
+                            <g key={i}>
+                                <rect
+                                    x={x}
+                                    y={y}
+                                    width={barWidth}
+                                    height={barHeightVal}
+                                    rx="4"
+                                    fill={`url(#barGradient${i})`}
+                                />
+                                <text
+                                    x={x + barWidth / 2}
+                                    y={height - padding + 20}
+                                    textAnchor="middle"
+                                    fill="var(--text-secondary)"
+                                    fontSize="12"
+                                >
+                                    {d.group}
+                                </text>
+                                <text
+                                    x={x + barWidth / 2}
+                                    y={y - 8}
+                                    textAnchor="middle"
+                                    fill="var(--text-primary)"
+                                    fontSize="12"
+                                    fontWeight="600"
+                                >
+                                    {d.score}
+                                </text>
+                                
+                                <defs>
+                                    <linearGradient id={`barGradient${i}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" stopColor="var(--secondary)" />
+                                        <stop offset="100%" stopColor="var(--primary)" />
+                                    </linearGradient>
+                                </defs>
+                            </g>
+                        );
+                    })}
+                </svg>
+            );
+        };
+
+        // Student Modal Component
+        const StudentModal = ({ student, onClose }) => {
+            if (!student) return null;
+
+            const getProgressColor = (value) => {
+                if (value >= 90) return 'success';
+                if (value >= 70) return 'warning';
+                return 'danger';
+            };
+
+            return (
+                <div className="modal-overlay" onClick={onClose}>
+                    <div className="modal" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h3 className="modal-title">{student.name}</h3>
+                            <button className="modal-close" onClick={onClose}>×</button>
+                        </div>
+                        
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+                                <div style={{ flex: 1 }}>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Total Questions</div>
+                                    <div style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--text-primary)' }}>{student.totalQuestions}</div>
+                                </div>
+                                <div style={{ flex: 1 }}>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Accuracy</div>
+                                    <div style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--primary)' }}>{student.accuracy}%</div>
+                                </div>
+                                <div style={{ flex: 1 }}>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Age</div>
+                                    <div style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--text-primary)' }}>{student.age}</div>
+                                </div>
+                            </div>
+                            
+                            <h4 style={{ marginBottom: '1rem', color: 'var(--text-primary)' }}>Topic Performance</h4>
+                            <div className="weak-areas">
+                                {Object.entries(student.topics).filter(([_, v]) => v > 0).map(([topic, score]) => (
+                                    <div key={topic}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                                            <span style={{ textTransform: 'capitalize', fontWeight: '500' }}>{topic}</span>
+                                            <span style={{ fontWeight: '600' }}>{score}%</span>
+                                        </div>
+                                        <div className="progress-bar">
+                                            <div 
+                                                className={`progress-fill ${getProgressColor(score)}`}
+                                                style={{ width: `${score}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Question Modal Component
+        const QuestionModal = ({ question, onClose, onSave, isEdit }) => {
+            const [formData, setFormData] = useState({
+                text: question?.text || '',
+                answer: question?.answer || '',
+                options: question?.options || ['', '', ''],
+                difficulty: question?.difficulty || 'Easy',
+                ageGroup: question?.ageGroup || '5-9'
+            });
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                onSave({
+                    ...formData,
+                    id: question?.id || Date.now(),
+                    options: [formData.answer, ...formData.options.filter(o => o)]
+                });
+            };
+
+            const updateOption = (index, value) => {
+                const newOptions = [...formData.options];
+                newOptions[index] = value;
+                setFormData({ ...formData, options: newOptions });
+            };
+
+            return (
+                <div className="modal-overlay" onClick={onClose}>
+                    <div className="modal" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h3 className="modal-title">{isEdit ? 'Edit Question' : 'Add New Question'}</h3>
+                            <button className="modal-close" onClick={onClose}>×</button>
+                        </div>
+                        
+                        <form onSubmit={handleSubmit}>
+                            <div className="form-group">
+                                <label className="form-label">Question Text</label>
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    value={formData.text}
+                                    onChange={e => setFormData({ ...formData, text: e.target.value })}
+                                    required
+                                    placeholder="Enter the question"
+                                />
+                            </div>
+                            
+                            <div className="form-group">
+                                <label className="form-label">Correct Answer</label>
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    value={formData.answer}
+                                    onChange={e => setFormData({ ...formData, answer: e.target.value })}
+                                    required
+                                    placeholder="Enter the correct answer"
+                                />
+                            </div>
+                            
+                            <div className="form-group">
+                                <label className="form-label">Wrong Options (up to 3)</label>
+                                {formData.options.map((opt, i) => (
+                                    <input
+                                        key={i}
+                                        type="text"
+                                        className="form-input"
+                                        value={opt}
+                                        onChange={e => updateOption(i, e.target.value)}
+                                        placeholder={`Wrong option ${i + 1}`}
+                                        style={{ marginTop: i > 0 ? '0.5rem' : '0' }}
+                                    />
+                                ))}
+                            </div>
+                            
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label className="form-label">Difficulty</label>
+                                    <select
+                                        className="form-input"
+                                        value={formData.difficulty}
+                                        onChange={e => setFormData({ ...formData, difficulty: e.target.value })}
+                                    >
+                                        <option value="Easy">Easy</option>
+                                        <option value="Medium">Medium</option>
+                                        <option value="Hard">Hard</option>
+                                    </select>
+                                </div>
+                                
+                                <div className="form-group">
+                                    <label className="form-label">Age Group</label>
+                                    <select
+                                        className="form-input"
+                                        value={formData.ageGroup}
+                                        onChange={e => setFormData({ ...formData, ageGroup: e.target.value })}
+                                    >
+                                        <option value="5-9">5-9 years</option>
+                                        <option value="10-14">10-14 years</option>
+                                        <option value="15-18">15-18 years</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+                                <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>
+                                    {isEdit ? 'Save Changes' : 'Add Question'}
+                                </button>
+                                <button type="button" className="btn btn-secondary" onClick={onClose}>
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            );
+        };
+
+        // Toast Component
+        const Toast = ({ message, onClose }) => {
+            useEffect(() => {
+                const timer = setTimeout(onClose, 3000);
+                return () => clearTimeout(timer);
+            }, [onClose]);
+
+            return (
+                <div className="toast">
+                    <span style={{ fontSize: '1.25rem' }}>✅</span>
+                    <span>{message}</span>
+                </div>
+            );
+        };
+
+        // Dashboard Page
+        const DashboardPage = () => {
+            const activeToday = mockStudents.filter(s => s.lastActive === '2024-01-15').length;
+            const totalQuestions = mockStudents.reduce((sum, s) => sum + s.totalQuestions, 0);
+            const avgScore = Math.round(mockStudents.reduce((sum, s) => sum + s.accuracy, 0) / mockStudents.length);
+
+            const recentActivity = [...mockStudents]
+                .sort((a, b) => new Date(b.lastActive) - new Date(a.lastActive))
+                .slice(0, 5);
+
+            return (
+                <div>
+                    <div className="header">
+                        <h1 className="page-title">Dashboard</h1>
+                    </div>
+
+                    <div className="stats-grid">
+                        <div className="stat-card">
+                            <div className="stat-header">
+                                <div className="stat-icon primary">👥</div>
+                            </div>
+                            <div className="stat-value">{mockStudents.length}</div>
+                            <div className="stat-label">Total Students</div>
+                            <div className="stat-trend up">↑ 12% from last month</div>
+                        </div>
+
+                        <div className="stat-card">
+                            <div className="stat-header">
+                                <div className="stat-icon success">🎯</div>
+                            </div>
+                            <div className="stat-value">{activeToday}</div>
+                            <div className="stat-label">Active Today</div>
+                            <div className="stat-trend up">↑ 8% from yesterday</div>
+                        </div>
+
+                        <div className="stat-card">
+                            <div className="stat-header">
+                                <div className="stat-icon warning">❓</div>
+                            </div>
+                            <div className="stat-value">{totalQuestions.toLocaleString()}</div>
+                            <div className="stat-label">Questions Answered</div>
+                            <div className="stat-trend up">↑ 23% this week</div>
+                        </div>
+
+                        <div className="stat-card">
+                            <div className="stat-header">
+                                <div className="stat-icon secondary">📊</div>
+                            </div>
+                            <div className="stat-value">{avgScore}%</div>
+                            <div className="stat-label">Average Score</div>
+                            <div className="stat-trend up">↑ 3% improvement</div>
+                        </div>
+                    </div>
+
+                    <div className="charts-grid">
+                        <div className="chart-card">
+                            <h3 className="chart-title">Weekly Activity</h3>
+                            <div className="chart-container">
+                                <LineChart data={weeklyActivityData} />
+                            </div>
+                        </div>
+
+                        <div className="chart-card">
+                            <h3 className="chart-title">Performance by Age Group</h3>
+                            <div className="chart-container">
+                                <BarChart data={ageGroupPerformance} />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="activity-feed">
+                        <h3 className="chart-title">Recent Activity</h3>
+                        {recentActivity.map(student => (
+                            <div key={student.id} className="activity-item">
+                                <div className="activity-avatar">
+                                    {student.name.split(' ').map(n => n[0]).join('')}
+                                </div>
+                                <div className="activity-info">
+                                    <div className="activity-name">{student.name}</div>
+                                    <div className="activity-action">Completed {Math.floor(Math.random() * 20 + 5)} questions</div>
+                                </div>
+                                <div className="activity-time">{student.lastActive}</div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        // Students Page
+        const StudentsPage = () => {
+            const [searchTerm, setSearchTerm] = useState('');
+            const [modeFilter, setModeFilter] = useState('All');
+            const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
+            const [selectedStudent, setSelectedStudent] = useState(null);
+
+            const filteredStudents = useMemo(() => {
+                let result = [...mockStudents];
+
+                if (searchTerm) {
+                    result = result.filter(s => 
+                        s.name.toLowerCase().includes(searchTerm.toLowerCase())
+                    );
+                }
+
+                if (modeFilter !== 'All') {
+                    result = result.filter(s => s.mode === modeFilter);
+                }
+
+                result.sort((a, b) => {
+                    if (a[sortConfig.key] < b[sortConfig.key]) {
+                        return sortConfig.direction === 'asc' ? -1 : 1;
+                    }
+                    if (a[sortConfig.key] > b[sortConfig.key]) {
+                        return sortConfig.direction === 'asc' ? 1 : -1;
+                    }
+                    return 0;
+                });
+
+                return result;
+            }, [searchTerm, modeFilter, sortConfig]);
+
+            const handleSort = (key) => {
+                setSortConfig(prev => ({
+                    key,
+                    direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+                }));
+            };
+
+            const SortIcon = ({ column }) => {
+                if (sortConfig.key !== column) return <span className="sort-icon">↕</span>;
+                return <span className="sort-icon">{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>;
+            };
+
+            return (
+                <div>
+                    <div className="header">
+                        <h1 className="page-title">Students Management</h1>
+                    </div>
+
+                    <div className="table-container">
+                        <div className="table-filters">
+                            <input
+                                type="text"
+                                className="search-input"
+                                placeholder="Search students..."
+                                value={searchTerm}
+                                onChange={e => setSearchTerm(e.target.value)}
+                            />
+                            <select
+                                className="filter-select"
+                                value={modeFilter}
+                                onChange={e => setModeFilter(e.target.value)}
+                            >
+                                <option value="All">All Modes</option>
+                                <option value="Kids">Kids</option>
+                                <option value="Teens">Teens</option>
+                            </select>
+                        </div>
+
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th onClick={() => handleSort('name')}>
+                                        <span className="sortable">Name <SortIcon column="name" /></span>
+                                    </th>
+                                    <th onClick={() => handleSort('age')}>
+                                        <span className="sortable">Age <SortIcon column="age" /></span>
+                                    </th>
+                                    <th>Mode</th>
+                                    <th onClick={() => handleSort('totalQuestions')}>
+                                        <span className="sortable">Questions <SortIcon column="totalQuestions" /></span>
+                                    </th>
+                                    <th onClick={() => handleSort('accuracy')}>
+                                        <span className="sortable">Accuracy % <SortIcon column="accuracy" /></span>
+                                    </th>
+                                    <th>Last Active</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filteredStudents.map(student => (
+                                    <tr 
+                                        key={student.id}
+                                        onClick={() => setSelectedStudent(student)}
+                                        style={{ cursor: 'pointer' }}
+                                    >
+                                        <td style={{ fontWeight: '500' }}>{student.name}</td>
+                                        <td>{student.age}</td>
+                                        <td>
+                                            <span className={`badge badge-${student.mode.toLowerCase()}`}>
+                                                {student.mode}
+                                            </span>
+                                        </td>
+                                        <td>{student.totalQuestions}</td>
+                                        <td>
+                                            <span style={{ 
+                                                color: student.accuracy >= 90 ? 'var(--success)' : 
+                                                       student.accuracy >= 70 ? 'var(--warning)' : 'var(--danger)',
+                                                fontWeight: '600'
+                                            }}>
+                                                {student.accuracy}%
+                                            </span>
+                                        </td>
+                                        <td>{student.lastActive}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+
+                        {filteredStudents.length === 0 && (
+                            <div className="empty-state">
+                                <div className="empty-icon">🔍</div>
+                                <p>No students found matching your criteria</p>
+                            </div>
+                        )}
+                    </div>
+
+                    {selectedStudent && (
+                        <StudentModal 
+                            student={selectedStudent} 
+                            onClose={() => setSelectedStudent(null)} 
+                        />
+                    )}
+                </div>
+            );
+        };
+
+        // Analytics Page
+        const AnalyticsPage = () => {
+            return (
+                <div>
+                    <div className="header">
+                        <h1 className="page-title">Analytics</h1>
+                    </div>
+
+                    <div className="charts-grid">
+                        <div className="chart-card">
+                            <h3 className="chart-title">Performance by Topic</h3>
+                            <div className="chart-container">
+                                <BarChart data={topicAccuracy} horizontal />
+                            </div>
+                        </div>
+
+                        <div className="chart-card">
+                            <h3 className="chart-title">Weak Areas</h3>
+                            <div className="weak-areas">
+                                {weakQuestions.map((q, i) => (
+                                    <div key={q.id} className="weak-item">
+                                        <div className="weak-rank">{i + 1}</div>
+                                        <div className="weak-info">
+                                            <div className="weak-question">{q.text}</div>
+                                            <div className="weak-stats">{q.wrongAttempts} wrong attempts</div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="charts-grid">
+                        <div className="chart-card">
+                            <h3 className="chart-title">Average Session Duration (minutes)</h3>
+                            <div className="chart-container">
+                                <BarChart data={[
+                                    { group: '5-9', score: 15 },
+                                    { group: '10-14', score: 22 },
+                                    { group: '15-18', score: 28 }
+                                ]} />
+                            </div>
+                        </div>
+
+                        <div className="chart-card">
+                            <h3 className="chart-title">Progress Trends (30 Days)</h3>
+                            <div className="chart-container">
+                                <LineChart data={[
+                                    { day: 'Week 1', value: 75 },
+                                    { day: 'Week 2', value: 79 },
+                                    { day: 'Week 3', value: 84 },
+                                    { day: 'Week 4', value: 88 }
+                                ]} />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Questions Page
+        const QuestionsPage = () => {
+            const [questions, setQuestions] = useState([...mockQuestions]);
+            const [searchTerm, setSearchTerm] = useState('');
+            const [difficultyFilter, setDifficultyFilter] = useState('All');
+            const [ageGroupFilter, setAgeGroupFilter] = useState('All');
+            const [showModal, setShowModal] = useState(false);
+            const [editingQuestion, setEditingQuestion] = useState(null);
+            const [toast, setToast] = useState(null);
+
+            const filteredQuestions = useMemo(() => {
+                return questions.filter(q => {
+                    const matchesSearch = q.text.toLowerCase().includes(searchTerm.toLowerCase());
+                    const matchesDifficulty = difficultyFilter === 'All' || q.difficulty === difficultyFilter;
+                    const matchesAgeGroup = ageGroupFilter === 'All' || q.ageGroup === ageGroupFilter;
+                    return matchesSearch && matchesDifficulty && matchesAgeGroup;
+                });
+            }, [questions, searchTerm, difficultyFilter, ageGroupFilter]);
+
+            const handleSave = (question) => {
+                if (editingQuestion) {
+                    setQuestions(questions.map(q => q.id === question.id ? question : q));
+                    setToast('Question updated successfully!');
+                } else {
+                    setQuestions([...questions, question]);
+                    setToast('Question added successfully!');
+                }
+                setShowModal(false);
+                setEditingQuestion(null);
+            };
+
+            const handleDelete = (id) => {
+                if (confirm('Are you sure you want to delete this question?')) {
+                    setQuestions(questions.filter(q => q.id !== id));
+                    setToast('Question deleted successfully!');
+                }
+            };
+
+            const handleEdit = (question) => {
+                setEditingQuestion(question);
+                setShowModal(true);
+            };
+
+            return (
+                <div>
+                    <div className="header">
+                        <h1 className="page-title">Questions Management</h1>
+                        <button className="btn btn-primary" onClick={() => { setEditingQuestion(null); setShowModal(true); }}>
+                            ➕ Add New Question
+                        </button>
+                    </div>
+
+                    <div className="table-container">
+                        <div className="table-filters">
+                            <input
+                                type="text"
+                                className="search-input"
+                                placeholder="Search questions..."
+                                value={searchTerm}
+                                onChange={e => setSearchTerm(e.target.value)}
+                            />
+                            <select
+                                className="filter-select"
+                                value={difficultyFilter}
+                                onChange={e => setDifficultyFilter(e.target.value)}
+                            >
+                                <option value="All">All Difficulties</option>
+                                <option value="Easy">Easy</option>
+                                <option value="Medium">Medium</option>
+                                <option value="Hard">Hard</option>
+                            </select>
+                            <select
+                                className="filter-select"
+                                value={ageGroupFilter}
+                                onChange={e => setAgeGroupFilter(e.target.value)}
+                            >
+                                <option value="All">All Age Groups</option>
+                                <option value="5-9">5-9 years</option>
+                                <option value="10-14">10-14 years</option>
+                                <option value="15-18">15-18 years</option>
+                            </select>
+                        </div>
+
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Question</th>
+                                    <th>Answer</th>
+                                    <th>Difficulty</th>
+                                    <th>Age Group</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filteredQuestions.map(question => (
+                                    <tr key={question.id}>
+                                        <td>#{question.id}</td>
+                                        <td style={{ maxWidth: '300px' }}>{question.text}</td>
+                                        <td style={{ fontWeight: '600', color: 'var(--success)' }}>{question.answer}</td>
+                                        <td>
+                                            <span className={`badge badge-${question.difficulty.toLowerCase()}`}>
+                                                {question.difficulty}
+                                            </span>
+                                        </td>
+                                        <td>{question.ageGroup}</td>
+                                        <td>
+                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                <button 
+                                                    className="btn btn-secondary btn-sm"
+                                                    onClick={() => handleEdit(question)}
+                                                >
+                                                    ✏️ Edit
+                                                </button>
+                                                <button 
+                                                    className="btn btn-danger btn-sm"
+                                                    onClick={() => handleDelete(question.id)}
+                                                >
+                                                    🗑️ Delete
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+
+                        {filteredQuestions.length === 0 && (
+                            <div className="empty-state">
+                                <div className="empty-icon">🔍</div>
+                                <p>No questions found matching your criteria</p>
+                            </div>
+                        )}
+                    </div>
+
+                    {showModal && (
+                        <QuestionModal
+                            question={editingQuestion}
+                            onClose={() => { setShowModal(false); setEditingQuestion(null); }}
+                            onSave={handleSave}
+                            isEdit={!!editingQuestion}
+                        />
+                    )}
+
+                    {toast && (
+                        <div className="toast-container">
+                            <Toast message={toast} onClose={() => setToast(null)} />
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // Settings Page
+        const SettingsPage = () => {
+            const { theme, toggleTheme } = useContext(ThemeContext);
+            const [config, setConfig] = useState({
+                timePerQuestion: 30,
+                questionsPerSession: 10,
+                enableHints: true,
+                emailAlerts: true,
+                weeklyReports: false
+            });
+            const [toast, setToast] = useState(null);
+
+            const handleSave = () => {
+                setToast('Settings saved successfully!');
+            };
+
+            return (
+                <div>
+                    <div className="header">
+                        <h1 className="page-title">Settings</h1>
+                    </div>
+
+                    <div className="settings-grid">
+                        <div className="settings-card">
+                            <h3 className="settings-card-title">Game Configuration</h3>
+                            
+                            <div className="form-group">
+                                <label className="form-label">Time per Question: {config.timePerQuestion}s</label>
+                                <div className="slider-container">
+                                    <input
+                                        type="range"
+                                        className="slider"
+                                        min="10"
+                                        max="120"
+                                        value={config.timePerQuestion}
+                                        onChange={e => setConfig({ ...config, timePerQuestion: parseInt(e.target.value) })}
+                                    />
+                                    <span className="slider-value">{config.timePerQuestion}s</span>
+                                </div>
+                            </div>
+
+                            <div className="form-group">
+                                <label className="form-label">Questions per Session</label>
+                                <input
+                                    type="number"
+                                    className="form-input"
+                                    value={config.questionsPerSession}
+                                    onChange={e => setConfig({ ...config, questionsPerSession: parseInt(e.target.value) })}
+                                    min="5"
+                                    max="50"
+                                />
+                            </div>
+
+                            <div className="toggle-row">
+                                <span className="toggle-label">Enable Hints</span>
+                                <input
+                                    type="checkbox"
+                                    className="toggle"
+                                    checked={config.enableHints}
+                                    onChange={e => setConfig({ ...config, enableHints: e.target.checked })}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="settings-card">
+                            <h3 className="settings-card-title">Theme Settings</h3>
+                            
+                            <div className="toggle-row">
+                                <span className="toggle-label">Dark Mode</span>
+                                <input
+                                    type="checkbox"
+                                    className="toggle"
+                                    checked={theme === 'dark'}
+                                    onChange={toggleTheme}
+                                />
+                            </div>
+
+                            <div style={{ marginTop: '1rem', padding: '1rem', background: 'var(--bg-light)', borderRadius: 'var(--radius)' }}>
+                                <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Preview</div>
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                    <div style={{ width: '30px', height: '30px', borderRadius: '4px', background: 'var(--primary)' }}></div>
+                                    <div style={{ width: '30px', height: '30px', borderRadius: '4px', background: 'var(--secondary)' }}></div>
+                                    <div style={{ width: '30px', height: '30px', borderRadius: '4px', background: 'var(--success)' }}></div>
+                                    <div style={{ width: '30px', height: '30px', borderRadius: '4px', background: 'var(--warning)' }}></div>
+                                    <div style={{ width: '30px', height: '30px', borderRadius: '4px', background: 'var(--danger)' }}></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="settings-card">
+                            <h3 className="settings-card-title">Notification Preferences</h3>
+                            
+                            <div className="toggle-row">
+                                <span className="toggle-label">Email Alerts</span>
+                                <input
+                                    type="checkbox"
+                                    className="toggle"
+                                    checked={config.emailAlerts}
+                                    onChange={e => setConfig({ ...config, emailAlerts: e.target.checked })}
+                                />
+                            </div>
+
+                            <div className="toggle-row" style={{ borderBottom: 'none' }}>
+                                <span className="toggle-label">Weekly Reports</span>
+                                <input
+                                    type="checkbox"
+                                    className="toggle"
+                                    checked={config.weeklyReports}
+                                    onChange={e => setConfig({ ...config, weeklyReports: e.target.checked })}
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'flex-end' }}>
+                        <button className="btn btn-primary" onClick={handleSave}>
+                            💾 Save Settings
+                        </button>
+                    </div>
+
+                    {toast && (
+                        <div className="toast-container">
+                            <Toast message={toast} onClose={() => setToast(null)} />
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // Main App Component
+        const App = () => {
+            const [currentPage, setCurrentPage] = useState('dashboard');
+            const [sidebarOpen, setSidebarOpen] = useState(false);
+            const { theme } = useContext(ThemeContext);
+
+            const renderPage = () => {
+                switch (currentPage) {
+                    case 'dashboard': return <DashboardPage />;
+                    case 'students': return <StudentsPage />;
+                    case 'analytics': return <AnalyticsPage />;
+                    case 'questions': return <QuestionsPage />;
+                    case 'settings': return <SettingsPage />;
+                    default: return <DashboardPage />;
+                }
+            };
+
+            return (
+                <div className="app-container">
+                    <Sidebar 
+                        currentPage={currentPage}
+                        setCurrentPage={setCurrentPage}
+                        isOpen={sidebarOpen}
+                        setIsOpen={setSidebarOpen}
+                    />
+                    
+                    <main className="main-content">
+                        <div className="header">
+                            <button className="hamburger" onClick={() => setSidebarOpen(!sidebarOpen)}>
+                                ☰
+                            </button>
+                            
+                            <div className="header-actions">
+                                <button className="theme-toggle" onClick={() => {
+                                    const event = new Event('toggle-theme');
+                                    window.dispatchEvent(event);
+                                }}>
+                                    {theme === 'light' ? '🌙' : '☀️'}
+                                </button>
+                            </div>
+                        </div>
+                        
+                        {renderPage()}
+                    </main>
+                </div>
+            );
+        };
+
+        // App Wrapper with Theme Context
+        const AppWrapper = () => {
+            const { theme, toggleTheme } = useContext(ThemeContext);
+            const [localTheme, setLocalTheme] = useState(theme);
+
+            useEffect(() => {
+                const handleToggle = () => {
+                    toggleTheme();
+                    setLocalTheme(prev => prev === 'light' ? 'dark' : 'light');
+                };
+
+                window.addEventListener('toggle-theme', handleToggle);
+                return () => window.removeEventListener('toggle-theme', handleToggle);
+            }, [toggleTheme]);
+
+            return <App />;
+        };
+
+        // Render the app
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(
+            <ThemeProvider>
+                <AppWrapper />
+            </ThemeProvider>
+        );
+    </script>
+</body>
+</html>
